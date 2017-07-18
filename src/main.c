@@ -63,7 +63,7 @@ extern unsigned _stklen = 32768U;
 extern unsigned _ovrbuffer = 0x1500;
 #endif
 
-#ifdef PRIVATE_USER_PATH
+#if defined(SET_UID) && defined(USE_PRIVATE_PATHS)
 
 /*
  * Create an ".angband/" directory in the users home directory.
@@ -89,7 +89,7 @@ static void create_user_dir(void)
 	mkdir(subdirpath, 0700);
 }
 
-#endif /* PRIVATE_USER_PATH */
+#endif /* SET_UID && USE_PRIVATE_PATHS */
 
 
 /*
@@ -397,12 +397,12 @@ int main(int argc, char *argv[])
 	/* Acquire the "user name" as a default player name */
 	user_name(player_name, player_uid);
 
-#ifdef PRIVATE_USER_PATH
+# ifdef USE_PRIVATE_PATHS
 
 	/* Create a directory for the users files. */
 	create_user_dir();
 
-#endif /* PRIVATE_USER_PATH */
+# endif /* USE_PRIVATE_PATHS */
 
 #endif /* SET_UID */
 
