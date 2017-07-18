@@ -1839,7 +1839,7 @@ void do_cmd_macros(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Ask for a file */
-            if (!askfor(tmp, 80)) continue;
+            if (!askfor_file(tmp, 80, TRUE)) continue;
 
             /* Process the given filename */
             err = process_pref_file(tmp);
@@ -1875,7 +1875,7 @@ void do_cmd_macros(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Ask for a file */
-            if (!askfor(tmp, 80)) continue;
+            if (!askfor_file(tmp, 80, TRUE)) continue;
 
             /* Dump the macros */
             (void)macro_dump(tmp);
@@ -1958,7 +1958,7 @@ void do_cmd_macros(void)
             ascii_to_text(tmp, macro__buf);
 
             /* Get an encoded action */
-            if (askfor(tmp, 80))
+            if (askfor_file(tmp, 80, TRUE))
             {
                 /* Convert to ascii */
                 text_to_ascii(macro__buf, tmp);
@@ -2008,8 +2008,12 @@ void do_cmd_macros(void)
             /* Default filename */
             sprintf(tmp, "%s.prf", player_base);
 
-            /* Ask for a file */
-            if (!askfor(tmp, 80)) continue;
+            /*Do not allow users in server mode to write to arbitrary files*/
+            if(!arg_lock_name)
+            {
+                /* Ask for a file */
+                if (!askfor_file(tmp, 80, TRUE)) continue;
+            }
 
             /* Dump the macros */
             (void)keymap_dump(tmp);
@@ -2287,7 +2291,7 @@ void do_cmd_visuals(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Query */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Process the given filename */
             (void)process_pref_file(tmp);
@@ -2312,7 +2316,7 @@ void do_cmd_visuals(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Get a filename */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Build the filename */
             path_build(buf, sizeof(buf), ANGBAND_DIR_USER, tmp);
@@ -2363,7 +2367,7 @@ void do_cmd_visuals(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Get a filename */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Build the filename */
             path_build(buf, sizeof(buf), ANGBAND_DIR_USER, tmp);
@@ -2432,7 +2436,7 @@ void do_cmd_visuals(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Get a filename */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Build the filename */
             path_build(buf, sizeof(buf), ANGBAND_DIR_USER, tmp);
@@ -2878,7 +2882,7 @@ void do_cmd_colors(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Query */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Process the given filename */
             (void)process_pref_file(tmp);
@@ -2909,7 +2913,7 @@ void do_cmd_colors(void)
             sprintf(tmp, "%s.prf", player_base);
 
             /* Get a filename */
-            if (!askfor(tmp, 70)) continue;
+            if (!askfor_file(tmp, 70, TRUE)) continue;
 
             /* Build the filename */
             path_build(buf, sizeof(buf), ANGBAND_DIR_USER, tmp);

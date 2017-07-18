@@ -1573,6 +1573,7 @@ extern void c_roff(byte attr, cptr str);
 extern void roff(cptr str);
 extern void clear_from(int row);
 extern bool askfor_aux(char *buf, int len, bool numpad_cursor);
+extern bool askfor_file(char *buf, int len, bool numpad_cursor);
 extern bool askfor(char *buf, int len);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_check(cptr prompt);

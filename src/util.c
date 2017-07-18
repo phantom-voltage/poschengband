@@ -2725,7 +2725,6 @@ bool askfor_aux(char *buf, int len, bool numpad_cursor)
     /* Paranoia -- Clip the default entry */
     buf[len] = '\0';
 
-
     /* Process input */
     while (TRUE)
     {
@@ -2894,6 +2893,257 @@ bool askfor_aux(char *buf, int len, bool numpad_cursor)
         }
 
     } /* while (TRUE) */
+    
+}
+
+/* Function operates like askfor_aux, except it restricts
+   Input if arg_lock_name is true. Those players should not
+   be able to write to arbitrary files, which include .. and /
+   characters.
+*/
+bool askfor_file(char *buf, int len, bool numpad_cursor)
+{
+    int y, x;
+    int pos = 0;
+
+    /*
+     * Text color
+     * TERM_YELLOW : Overwrite mode
+     * TERM_WHITE : Insert mode
+     */
+    byte color = TERM_YELLOW;
+
+    /* Locate the cursor position */
+    Term_locate(&x, &y);
+
+    /* Paranoia -- check len */
+    if (len < 1) len = 1;
+
+    /* Paranoia -- check column */
+    if ((x < 0) || (x >= 80)) x = 0;
+
+    /* Restrict the length */
+    if (x + len > 80) len = 80 - x;
+
+    /* Paranoia -- Clip the default entry */
+    buf[len] = '\0';
+
+    /* Only allow entering file names, if the user doesn't have
+       a locked name, i.e., server play
+    */
+    if(!arg_lock_name)
+    {
+
+        /* Process input */
+        while (TRUE)
+        {
+            int skey;
+
+            /* Display the string */
+            Term_erase(x, y, len);
+            Term_putstr(x, y, -1, color, buf);
+
+            /* Place cursor */
+            Term_gotoxy(x + pos, y);
+
+            /* Get a special key code */
+            skey = inkey_special(numpad_cursor);
+
+            /* Analyze the key */
+            switch (skey)
+            {
+            case SKEY_LEFT:
+            case KTRL('b'):
+            {
+                int i = 0;
+
+                /* Now on insert mode */
+                color = TERM_WHITE;
+
+                /* No move at beginning of line */
+                if (0 == pos) break;
+
+                while (TRUE)
+                {
+                    int next_pos = i + 1;
+
+
+                    /* Is there the cursor at next position? */ 
+                    if (next_pos >= pos) break;
+
+                    /* Move to next */
+                    i = next_pos;
+                }
+
+                /* Get previous position */
+                pos = i;
+
+                break;
+            }
+
+            case SKEY_RIGHT:
+            case KTRL('f'):
+                /* Now on insert mode */
+                color = TERM_WHITE;
+
+                /* No move at end of line */
+                if ('\0' == buf[pos]) break;
+
+                pos++;
+
+                break;
+
+            case ESCAPE:
+                /* Cancel input */
+                buf[0] = '\0';
+                return FALSE;
+
+            case '\n':
+            case '\r':
+                /* Success */
+                return TRUE;
+
+            case '\010':
+                /* Backspace */
+            {
+                int i = 0;
+
+                /* Now on insert mode */
+                color = TERM_WHITE;
+
+                /* No move at beginning of line */
+                if (0 == pos) break;
+
+                while (TRUE)
+                {
+                    int next_pos = i + 1;
+
+
+                    /* Is there the cursor at next position? */ 
+                    if (next_pos >= pos) break;
+
+                    /* Move to next */
+                    i = next_pos;
+                }
+
+                /* Get previous position */
+                pos = i;
+
+                /* Fall through to 'Delete key' */
+            }
+
+            case 0x7F:
+            case KTRL('d'):
+                /* Delete key */
+            {
+                int dst, src;
+
+                /* Now on insert mode */
+                color = TERM_WHITE;
+
+                /* No move at end of line */
+                if ('\0' == buf[pos]) break;
+
+                /* Position of next character */
+                src = pos + 1;
+
+
+                dst = pos;
+
+                /* Move characters at src to dst */
+                while ('\0' != (buf[dst++] = buf[src++]))
+                    /* loop */;
+
+                break;
+            }
+
+            default:
+            {
+                /* Insert a character */
+
+                char tmp[100];
+                char c;
+
+                /* Ignore special keys */
+                if (skey & SKEY_MASK) break;
+
+                /* Get a character code */
+                c = (char)skey;
+
+                if (color == TERM_YELLOW)
+                {
+                    /* Overwrite default string */
+                    buf[0] = '\0';
+
+                    /* Go to insert mode */
+                    color = TERM_WHITE;
+                }
+
+                /* Save right part of string */
+                strcpy(tmp, buf + pos);
+                if (pos < len && isprint(c))
+                {
+                    buf[pos++] = c;
+                }
+                else
+                {
+                    bell();
+                }
+
+                /* Terminate */
+                buf[pos] = '\0';
+
+                /* Write back the left part of string */
+                my_strcat(buf, tmp, len + 1);
+
+                break;
+            } /* default: */
+
+            }
+
+        } /* while (TRUE) */
+    } /* if(!arg_lock_name) */
+    
+    else
+    {
+        /* Process limited input input */
+        while (TRUE)
+        {
+            int skey;
+
+            /* Display the string */
+            Term_erase(x, y, len);
+            Term_putstr(x, y, -1, color, buf);
+
+            /* Place cursor */
+            Term_gotoxy(x + pos, y);
+
+            /* Get a special key code */
+            skey = inkey_special(numpad_cursor);
+
+            /* Analyze the key */
+            switch (skey)
+            {
+            case ESCAPE:
+                /* Cancel input */
+                buf[0] = '\0';
+                return FALSE;
+
+            case '\n':
+            case '\r':
+                /* Success */
+                return TRUE;
+
+            default:
+            {
+                bell();
+                break;
+            } /* default: */
+
+            }
+
+        } /* while (TRUE) */
+    }  /* else */
 }
 
 

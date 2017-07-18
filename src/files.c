@@ -13,6 +13,7 @@
 #include "angband.h"
 #include "equip.h"
 #include "z-doc.h"
+#include <time.h>
 
 #ifdef SIGSTOP
 
@@ -3280,38 +3281,74 @@ static void show_info(void)
     prt("Then, hit RETURN to see the character, or ESC to abort.", 22, 0);
 
 
-    /* Dump character records as requested */
-    while (TRUE)
+    
+    
+    /* Do not allow users on server to choose filename */
+    if(!arg_lock_name)
+    {
+        
+        /* Dump character records as requested */
+        while (TRUE)
+        {
+            char out_val[160];
+
+            /* Prompt */
+            put_str("Filename: ", 23, 0);
+
+
+            /* Default */
+            strcpy(out_val, "");
+
+            /* Ask for filename (or abort) */
+            if (!askfor(out_val, 60))
+            {
+                if (dumped) return;
+                if (get_check("<color:v>Warning:</color> You forgot to grab a character dump. "
+                              "Are you sure you want to abort? ")) return;
+                continue;
+            }
+            /* Return means "show on screen" */
+            if (!out_val[0]) break;
+
+            /* Save screen */
+            screen_save();
+
+            /* Dump a character file */
+            (void)file_character(out_val);
+            dumped = TRUE;
+
+            /* Load screen */
+            screen_load();
+        }
+    }
+
+    else
     {
         char out_val[160];
+        char time_stamp[24];
 
-        /* Prompt */
-        put_str("Filename: ", 23, 0);
+        time_t      c;
+        struct tm   *tp;
+
+        c = time((time_t *)0);
+        tp = localtime(&c);
 
 
-        /* Default */
-        strcpy(out_val, "");
 
-        /* Ask for filename (or abort) */
-        if (!askfor(out_val, 60))
-        {
-            if (dumped) return;
-            if (get_check("<color:v>Warning:</color> You forgot to grab a character dump. "
-                          "Are you sure you want to abort? ")) return;
-            continue;
-        }
-        /* Return means "show on screen" */
-        if (!out_val[0]) break;
+        strftime(time_stamp, sizeof(time_stamp), "%Y-%m-%d_%H:%M:%S", tp);
 
-        /* Save screen */
+        strcpy(out_val, player_name);
+
+        strcat(out_val, "_");
+        strcat(out_val, time_stamp);
+        strcat(out_val, ".txt\0");
+
+
         screen_save();
-
-        /* Dump a character file */
         (void)file_character(out_val);
         dumped = TRUE;
-
-        /* Load screen */
         screen_load();
+        
     }
 
     update_playtime();
